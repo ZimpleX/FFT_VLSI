@@ -1,0 +1,4 @@
+Implement the R2SDF architecture for the FFT
+
+-   py_r2sdf:   verification of the algorithm
+-   v_r2sdf:    verilog implementation
