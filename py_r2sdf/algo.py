@@ -5,9 +5,9 @@ import numpy as np
 def gen_shuffle_idx(cur_idx):
     """
     generate the shuffle index.
-    partition cur_idx into n parts.
     """
-    if cur_idx.shape[0] == 1: return cur_idx
+    if cur_idx.shape[0] == 1: 
+        return cur_idx
     even_half = cur_idx[0::2]
     odd_half = cur_idx[1::2]
     return np.concatenate((gen_shuffle_idx(even_half),gen_shuffle_idx(odd_half)))
