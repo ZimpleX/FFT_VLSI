@@ -15,6 +15,6 @@ module gen_shuffle_idx_tb();
   end
   
   always #(`CLKH) clk=~clk;
-  gen_shuffle_idx #(.N(N)) shuffle_instance(.clk(clk), .shuffle_idx(shuffle_idx));
+  gen_shuffle_idx #(.N(N)) shuffle_instance(.shuffle_idx(shuffle_idx));
  
 endmodule
