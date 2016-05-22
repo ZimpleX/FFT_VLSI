@@ -1,0 +1,6 @@
+Some references
+---------------
+
+compilation - VCS
+-   https://binarypirates.wordpress.com/2013/01/26/vcs-commands-for-verilog/
+-   use System Verilog: add `-sverilog`
