@@ -6,17 +6,19 @@ module fft_tb ();
   reg clk;
   real ip_arr[(1<<N)-1:0];
   real ip;
-  real op_real_arr[(1<<N)-1:0];
-  real op_img_arr[(1<<N)-1:0];
+  reg start_ip;
+  real op_arr[(1<<N)-1:0][1:0];
   integer idx;
 
-  fft #(.N(N)) fft_instance(.clk,.ip,.op_real_arr,.op_img_arr);
+  fft #(.N(N)) fft_instance(.clk,.start_ip,.ip,.op_arr);
 
   initial begin
 `include "ip_arr.v"
     clk = 1;
     idx = 0;
-    #(`CLK*2) $finish;
+    start_ip = 1;
+    #(`CLK) start_ip = 0;
+    #(`CLK*(1<<N)*3) $finish;
   end
 
   always @(posedge clk) begin
@@ -25,4 +27,4 @@ module fft_tb ();
   end
 
   always #(`CLKH) clk =~ clk;
-end
+endmodule

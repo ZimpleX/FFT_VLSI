@@ -9,8 +9,8 @@ module bf_stage_tb();
 
   reg clk;
   wire [N-1:0] shuffle_idx[(1<<N)-1:0];
-  real cos_arr[1<<(n-1)];
-  real sin_arr[1<<(n-1)];
+  real cos_arr[1<<(N-1)];
+  real sin_arr[1<<(N-1)];
   real ip[1:0];
   real op[1:0];
   integer idx;

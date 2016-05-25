@@ -12,8 +12,8 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
   input clk;
   input [N-1:0] shuffle_idx[(1<<N)-1:0];
   reg [N-1:0] shuffle_idx_reg[(1<<N)-1:0];
-  input real cos_arr[1<<(n-1)];
-  input real sin_arr[1<<(n-1)];
+  input real cos_arr[1<<(N-1)];
+  input real sin_arr[1<<(N-1)];
   // TODO: may switch to fixed point representation
   input real ip[1:0];
   real ip_reg[1:0];
