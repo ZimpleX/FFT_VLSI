@@ -31,14 +31,14 @@ module bf_stage_tb();
         cos_arr[i] = 1.0;
         sin_arr[i] = 0.0;
       end
-      #(`CLK*(1<<N)) $finish;
+      #(`CLK*(1<<N)*1.5) $finish;
     end
   end
 
   always @(posedge clk) begin
-    ip[1] <= ip_arr[idx];
-    ip[0] <= 0.0;
-    idx <= idx + 1;
+    ip[1] = ip_arr[idx];
+    ip[0] = 0.0;
+    idx = idx + 1;
   end
   always #(`CLKH) clk=~clk;
 endmodule
