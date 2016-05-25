@@ -1,4 +1,5 @@
 `timescale 1ns/100ps
+typedef real cpx [1:0];
 module bf_stage (clk, shuffle_idx, cos_arr, sin_arr, 
                   ip, op);
   parameter N=3;  // number of inputs to FFT: 2^N
@@ -9,10 +10,12 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
 
   input clk;
   input [N-1:0] shuffle_idx[(1<<N)-1:0];
+  reg [N-1:0] shuffle_idx_reg[(1<<N)-1:0];
   input real cos_arr[1<<(n-1)];
   input real sin_arr[1<<(n-1)];
   // TODO: may switch to fixed point representation
   input real ip[1:0];
+  reg real ip_reg[1:0];
   output real op[1:0];
 
   reg timemux_clk;
@@ -28,6 +31,8 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
   initial begin
     integer i;
     begin
+      ip_reg = ip;
+      shuffle_idx_reg = shuffle_idx;
       warmup = 0;//n-1; // this is because output is reg.
       for (i=1; i<=n-1; i=i+1)
       begin
@@ -67,7 +72,7 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     end
   endfunction
   // ---------------------------------
-  function [31:0][1:0] get_twiddle_val(
+  function cpx get_twiddle_val(
                   reg timemux_clk,
                   integer twiddle_idx,
                   const ref reg [N-1:0] shuffle_idx[(1<<N)-1:0]);
@@ -89,11 +94,11 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     end
   endfunction
   // ---------------------------------
-  function [31:0][1:0] get_op_shift_buf(
-                  const ref real buf_real[delay-1:0],
-                  const ref real buf_img[delay-1:0],
+  function cpx get_op_shift_buf(
+                  ref real buf_real[delay-1:0],
+                  ref real buf_img[delay-1:0],
                   real ip[1:0],
-                  real twiddle_val[1:0];
+                  real twiddle_val[1:0]);
     // Last In First Out Queue.
     integer i;
     begin
@@ -109,9 +114,9 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     end
   endfunction
   // ---------------------------------
-  function [31:0][1:0] get_op_butterfly(
-                  const ref real buf_real[delay-1:0],
-                  const ref real buf_img[delay-1:0],
+  function cpx get_op_butterfly(
+                  ref real buf_real[delay-1:0],
+                  ref real buf_img[delay-1:0],
                   real ip[1:0],
                   real twiddle_val[1:0]);
     // ip <butterfly> buf[delay-1]
@@ -137,7 +142,7 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     end
   endfunction
   // ---------------------------------
-  function [31:0][1:0] mul(real a[1:0], real b[1:0]);
+  function cpx mul(real a[1:0], real b[1:0]);
     // complex number multiplication
     begin
       mul[1] = a[1]*b[1] - a[0]*b[0];
@@ -145,7 +150,7 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     end
   endfunction
   // ---------------------------------
-  function [31:0][1:0] expj(real twiddle_exp);
+  function cpx expj(integer twiddle_exp);
     begin
       expj[1] = cos_arr[twiddle_exp];
       expj[0] = sin_arr[twiddle_exp];
@@ -159,14 +164,14 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     begin
       // Don't increment warmup_count anymore
       ctrl_timemux(timemux_clk_count, period_count, timemux_clk, twiddle_idx);
-      twiddle_val = get_twiddle_val(timemux_clk,twiddle_idx,shuffle_idx);
+      twiddle_val = get_twiddle_val(timemux_clk,twiddle_idx,shuffle_idx_reg);
       if (timemux_clk == 1)
       begin
-        op = get_op_shift_buf(buf_real,buf_img,ip,twiddle_val);
+        op = get_op_shift_buf(buf_real,buf_img,ip_reg,twiddle_val);
       end
       else
       begin
-        op = get_op_butterfly(buf_real,buf_img,ip,twiddle_val);
+        op = get_op_butterfly(buf_real,buf_img,ip_reg,twiddle_val);
       end
     end
     else
