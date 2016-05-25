@@ -11,13 +11,13 @@ module bf_stage_tb();
   wire [N-1:0] shuffle_idx[(1<<N)-1:0];
   real cos_arr[1<<(n-1)];
   real sin_arr[1<<(n-1)];
-  real ip_real, ip_img;
-  real op_real, op_img;
+  real ip[1:0];
+  real op[1:0];
   integer idx;
   
   gen_shuffle_idx #(.N(N)) shuffle_instance(.shuffle_idx);
   bf_stage #(.N(N),.n(n)) bf_stage_instance(.clk,.shuffle_idx,
-          .cos_arr,.sin_arr,.ip_real,.ip_img,.op_real,.op_img);
+                                    .cos_arr,.sin_arr,.ip,.op);
   
   initial begin
     integer i;
@@ -36,8 +36,8 @@ module bf_stage_tb();
   end
 
   always @(posedge clk) begin
-    ip_real <= ip_arr[idx];
-    ip_img <= 0.0;
+    ip[1] <= ip_arr[idx];
+    ip[0] <= 0.0;
     idx <= idx + 1;
   end
   always #(`CLKH) clk=~clk;
