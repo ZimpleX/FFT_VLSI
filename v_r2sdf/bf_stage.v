@@ -1,12 +1,13 @@
 `timescale 1ns/100ps
 typedef real cpx [1:0];
 module bf_stage (clk, shuffle_idx, cos_arr, sin_arr, 
-                  ip, op);
+                  ip, op, start_ip, start_op);
   parameter N=3;  // number of inputs to FFT: 2^N
   parameter n=1;  // stage of the butterfly unit, start from 1.
   parameter delay = 1<<(N-n); // DON'T pass in this parameter!!
   integer warmup; // wait for some cycles for synchronous among stages
   integer warmup_count;
+  integer countdown;
 
   input clk;
   input [N-1:0] shuffle_idx[(1<<N)-1:0];
@@ -15,8 +16,10 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
   input real sin_arr[1<<(n-1)];
   // TODO: may switch to fixed point representation
   input real ip[1:0];
-  reg real ip_reg[1:0];
+  real ip_reg[1:0];
   output real op[1:0];
+  input start_ip;
+  output reg start_op;
 
   reg timemux_clk;
   real twiddle_val[1:0];
@@ -26,6 +29,8 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
   reg [N-n:0] period_count;
   real buf_real[delay-1:0];   // buffer to store the delayed value
   real buf_img[delay-1:0];
+  
+  integer stage_launch, output_countdown;
   // ----------------------------------
   // ----------------------------------
   initial begin
@@ -34,6 +39,7 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
       ip_reg = ip;
       shuffle_idx_reg = shuffle_idx;
       warmup = 0;//n-1; // this is because output is reg.
+      countdown = 0;
       for (i=1; i<=n-1; i=i+1)
       begin
         warmup = warmup + 1<<(N-i);
@@ -47,6 +53,9 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
       period = 2*delay;
       timemux_clk_count = 0;
       period_count = 0;
+
+      stage_launch = 0;
+      output_countdown = -1;
     end
   end
   // ----------------------------------
@@ -160,7 +169,20 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
   // ---------------------------------
   always @(posedge clk)
   begin
-    if (warmup_count == warmup)
+    ip_reg = ip;
+    if (start_ip == 1)
+    begin // reset
+      timemux_clk = 0;
+      timemux_clk_count = 0;
+      output_countdown = 1<<(N-n);
+      stage_launch = 1;
+    end
+    else
+    begin
+      // idle
+    end
+
+    if (stage_launch == 1)
     begin
       // Don't increment warmup_count anymore
       ctrl_timemux(timemux_clk_count, period_count, timemux_clk, twiddle_idx);
@@ -176,8 +198,23 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     end
     else
     begin
-      // TODO: should use a signal to indicate the start of data transfer
-      warmup_count = warmup_count + 1;
+      // idle
+    end
+
+    if (start_op == 1)
+      start_op = 0;   // signal lasts for 1 clk
+    if (output_countdown == 0)
+    begin
+      start_op = 1;
+      output_countdown = -1;
+    end
+    else if (output_countdown > 0 )
+    begin
+      output_countdown = output_countdown - 1;
+    end
+    else
+    begin
+      // do nothing
     end
   end
 

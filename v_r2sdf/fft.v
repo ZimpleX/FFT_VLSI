@@ -1,6 +1,7 @@
 // generate block: 
 // http://stackoverflow.com/questions/33899691/instantiate-modules-in-generate-for-loop-in-verilog
 `timescale 1ns/100ps
+typedef real t_trig_arr[$]
 module fft (clk, ip, op_real_arr, op_img_arr);
   parameter N=3;
   input clk;
@@ -39,7 +40,7 @@ module fft (clk, ip, op_real_arr, op_img_arr);
   end
   // -----------------------------
   // -----------------------------
-  function real[] trig_arr_n(real n);
+  function t_trig_arr trig_arr_n(real n);
     // prepare smaller array for the intermediate stage
     integer exp = 0;
     begin
@@ -47,13 +48,15 @@ module fft (clk, ip, op_real_arr, op_img_arr);
         cos_arr_n[exp] = cos[(1<<(MAX_N-n+1))*exp];
     end
   endfunction
-  function real[] sin_arr_n(real n);
+  function t_trig_arr sin_arr_n(real n);
     integer exp = 0;
     begin
       for (exp=0; exp<(1<<(n-1)); exp=exp+1)
         sin_arr_n[exp] = sin[(1<<(MAX_N-n+1))*exp];
     end
   endfunction
+  // TODO:
+  // final shuffle output
   // -----------------------------
   // -----------------------------
   //always @(posedge clk)

@@ -14,10 +14,11 @@ module bf_stage_tb();
   real ip[1:0];
   real op[1:0];
   integer idx;
+  reg start_ip, start_op;
   
   gen_shuffle_idx #(.N(N)) shuffle_instance(.shuffle_idx);
   bf_stage #(.N(N),.n(n)) bf_stage_instance(.clk,.shuffle_idx,
-                                    .cos_arr,.sin_arr,.ip,.op);
+                  .cos_arr,.sin_arr,.ip,.op,.start_ip,.start_op);
   
   initial begin
     integer i;
@@ -31,6 +32,8 @@ module bf_stage_tb();
         cos_arr[i] = 1.0;
         sin_arr[i] = 0.0;
       end
+      start_ip = 1;
+      #(`CLK) start_ip = 0;
       #(`CLK*(1<<N)*1.5) $finish;
     end
   end
