@@ -5,7 +5,7 @@
 module gen_shuffle_idx_tb();
   parameter N=4;
   reg clk;
-  wire [N-1:0] shuffle_idx[2**N-1:0];
+  wire [N-1:0] shuffle_idx[(1<<N)-1:0];
   initial begin
     $display("--- gen shuffle idx ---");
     $dumpfile("gen_shuffle_idx.dump");
