@@ -1,19 +1,20 @@
 // generate block: 
 // http://stackoverflow.com/questions/33899691/instantiate-modules-in-generate-for-loop-in-verilog
 `timescale 1ns/100ps
+`include "data_type.vh"
 module fft (clk, start_ip, ip, op_raw, op_shuffled);
   parameter N=3;
   input clk;
   // TODO: convert data type
-  input real ip;
+  input fpt ip;
   input start_ip;
-  real op_arr[(1<<N)-1:0][1:0];
-  real op_arr_bk[(1<<N)-1:0][1:0];
+  fpt op_arr[(1<<N)-1:0][1:0];
+  fpt op_arr_bk[(1<<N)-1:0][1:0];
   // TODO: should be what type??
-  real sig[N:0][1:0];
+  fpt sig[N:0][1:0];
   reg [N:0] start_sig;
-  output real op_raw[1:0];
-  output real op_shuffled[1:0];
+  output fpt op_raw[1:0];
+  output fpt op_shuffled[1:0];
   wire [N-1:0] shuffle_idx[(1<<N)-1:0];
   integer countdown;
 `include "trigonometric_table.v"
@@ -25,8 +26,8 @@ module fft (clk, start_ip, ip, op_raw, op_shuffled);
   generate
     genvar n;
     for (n=1; n<=N; n++) begin : bf_stage_instance
-      real cos_arr[1<<(N-1)] = cos_arr_n(n);
-      real sin_arr[1<<(N-1)] = sin_arr_n(n);
+      fpt cos_arr[1<<(N-1)] = cos_arr_n(n);
+      fpt sin_arr[1<<(N-1)] = sin_arr_n(n);
       bf_stage #(.N(N),.n(n)) (.clk,.shuffle_idx,.cos_arr,.sin_arr,
               .ip(sig[n-1]),.op(sig[n]),.start_ip(start_sig[n-1]),.start_op(start_sig[n]));
     end
@@ -39,7 +40,6 @@ module fft (clk, start_ip, ip, op_raw, op_shuffled);
   end
   // -----------------------------
   // -----------------------------
-  typedef real t_trig_arr[1<<(N-1)];
   function t_trig_arr cos_arr_n(integer n);
     // prepare smaller array for the intermediate stage
     integer exp = 0;

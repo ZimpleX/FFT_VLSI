@@ -1,14 +1,15 @@
+`include "data_type.vh"
 `define CLK 20
 `define CLKH (`CLK/2)
 `timescale 1ns/100ps
 module fft_tb ();
   parameter N = 4;
   reg clk;
-  real ip_arr[3*(1<<N)-1:0];
-  real ip;
+  fpt ip_arr[3*(1<<N)-1:0];
+  fpt ip;
   reg start_ip;
-  real op_raw[1:0];
-  real op_shuffled[1:0];
+  fpt op_raw[1:0];
+  fpt op_shuffled[1:0];
   integer idx;
 
   fft #(.N(N)) fft_instance(.clk,.start_ip,.ip,.op_raw,.op_shuffled);

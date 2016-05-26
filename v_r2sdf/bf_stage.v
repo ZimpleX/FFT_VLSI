@@ -1,5 +1,5 @@
 `timescale 1ns/100ps
-typedef real cpx [1:0];
+`include "data_type.vh"
 module bf_stage (clk, shuffle_idx, cos_arr, sin_arr, 
                   ip, op, start_ip, start_op);
   parameter N=3;  // number of inputs to FFT: 2^N
@@ -12,27 +12,41 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
   input clk;
   input [N-1:0] shuffle_idx[(1<<N)-1:0];
   reg [N-1:0] shuffle_idx_reg[(1<<N)-1:0];
-  input real cos_arr[1<<(N-1)];
-  input real sin_arr[1<<(N-1)];
+  input fpt cos_arr[1<<(N-1)];
+  input fpt sin_arr[1<<(N-1)];
   // TODO: may switch to fixed point representation
-  input real ip[1:0];
-  real ip_reg[1:0];
-  output real op[1:0];
+  input fpt ip[1:0];
+  fpt ip_reg[1:0];
+  output fpt op[1:0];
   input start_ip;
   output reg start_op;
 
   reg timemux_clk;
-  real twiddle_val[1:0];
+  fpt twiddle_val[1:0];
   integer twiddle_idx;
   integer period;
   reg [N-n-1:0] timemux_clk_count;
   reg [N-n:0] period_count;
-  real buf_real[delay-1:0];   // buffer to store the delayed value
-  real buf_img[delay-1:0];
+  fpt buf_real[delay-1:0];   // buffer to store the delayed value
+  fpt buf_img[delay-1:0];
   
   integer stage_launch, output_countdown;
   // ----------------------------------
   // ----------------------------------
+/*
+function fpt f_mul(fpt a, fpt b);
+  fpt_mul temp;
+  begin
+    temp = a*b;
+    f_mul = temp[47:16];
+  end
+endfunction
+*/
+function fpt f_mul(fpt a, fpt b);
+  f_mul = a*b;
+endfunction
+
+
   initial begin
     integer i;
     begin
@@ -109,10 +123,10 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
   endfunction
   // ---------------------------------
   function cpx get_op_shift_buf(
-                  ref real buf_real[delay-1:0],
-                  ref real buf_img[delay-1:0],
-                  real ip[1:0],
-                  real twiddle_val[1:0]);
+                  ref fpt buf_real[delay-1:0],
+                  ref fpt buf_img[delay-1:0],
+                  fpt ip[1:0],
+                  fpt twiddle_val[1:0]);
     // Last In First Out Queue.
     integer i;
     begin
@@ -129,15 +143,15 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
   endfunction
   // ---------------------------------
   function cpx get_op_butterfly(
-                  ref real buf_real[delay-1:0],
-                  ref real buf_img[delay-1:0],
-                  real ip[1:0],
-                  real twiddle_val[1:0]);
+                  ref fpt buf_real[delay-1:0],
+                  ref fpt buf_img[delay-1:0],
+                  fpt ip[1:0],
+                  fpt twiddle_val[1:0]);
     // ip <butterfly> buf[delay-1]
     // "+" value: push to op
     // "-" value: push to buf
-    real bufN[1:0];
-    real product[1:0];
+    fpt bufN[1:0];
+    fpt product[1:0];
     integer i;
     begin
       product = mul(ip,twiddle_val);
@@ -156,11 +170,11 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     end
   endfunction
   // ---------------------------------
-  function cpx mul(real a[1:0], real b[1:0]);
+  function cpx mul(fpt a[1:0], fpt b[1:0]);
     // complex number multiplication
     begin
-      mul[1] = a[1]*b[1] - a[0]*b[0];
-      mul[0] = a[1]*b[0] + a[0]*b[1];
+      mul[1] = f_mul(a[1],b[1]) - f_mul(a[0],b[0]);
+      mul[0] = f_mul(a[1],b[0]) + f_mul(a[0],b[1]);
     end
   endfunction
   // ---------------------------------
