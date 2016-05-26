@@ -7,4 +7,4 @@ if __name__ == '__main__':
     n = (2**4)*3
     f = open(f_name, 'w')
     for i in range(n):
-        f.write('ip_arr[{}] = {:.3f};\n'.format(i,np.random.rand(1)[0]*100-50))
+        f.write('ip_arr_raw[{}] = {};\n'.format(i,int(np.random.rand(1)[0]*15)))

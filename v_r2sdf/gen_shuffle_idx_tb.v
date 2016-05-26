@@ -1,7 +1,4 @@
-`timescale 1ns/100ps
-`define CLK 20
-`define CLKH (`CLK/2)
-
+`include "sys_macro.vh"
 module gen_shuffle_idx_tb();
   parameter N=4;
   reg clk;

@@ -1,7 +1,6 @@
 // generate block: 
 // http://stackoverflow.com/questions/33899691/instantiate-modules-in-generate-for-loop-in-verilog
-`timescale 1ns/100ps
-`include "data_type.vh"
+`include "sys_macro.vh"
 module fft (clk, start_ip, ip, op_raw, op_shuffled);
   parameter N=3;
   input clk;
@@ -52,7 +51,7 @@ module fft (clk, start_ip, ip, op_raw, op_shuffled);
     integer exp = 0;
     begin
       for (exp=0; exp<(1<<(n-1)); exp=exp+1)
-        sin_arr_n[exp] = -sin[(1<<(MAX_N-n+1))*exp];
+        sin_arr_n[exp] = sin[(1<<(MAX_N-n+1))*exp];
     end
   endfunction
   // TODO:

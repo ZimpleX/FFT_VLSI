@@ -1,4 +1,4 @@
-`timescale 1ns/100ps
+`include "sys_macro.vh"
 module gen_shuffle_idx (shuffle_idx);
   parameter  N=3;	// number of inputs to FFT: 2^N
   output reg [N-1:0] shuffle_idx[(1<<N)-1:0];

@@ -80,13 +80,15 @@ def sim_flow(ip):
     n = 1
     while ip is not None:
         op = ip
-        #print('-- real, imag '+'-'*80)
-        #_ = np.array([i.real for i in op])
-        #l = _.shape[0]
-        #fmt = '  '.join(['{:.2f}']*l)
-        #print(fmt.format(*_))
-        #_ = np.array([i.imag for i in op])
-        #print(fmt.format(*_))
+        """
+        print('-- real, imag '+'-'*80)
+        _ = np.array([i.real for i in op])
+        l = _.shape[0]
+        fmt = '  '.join(['{:.2f}']*l)
+        print(fmt.format(*_))
+        _ = np.array([i.imag for i in op])
+        print(fmt.format(*_))
+        """
         ip = sim_stage(n, ip, shuffle_idx)
         n += 1
     return op[shuffle_idx]

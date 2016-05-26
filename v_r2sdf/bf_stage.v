@@ -1,5 +1,4 @@
-`timescale 1ns/100ps
-`include "data_type.vh"
+`include "sys_macro.vh"
 module bf_stage (clk, shuffle_idx, cos_arr, sin_arr, 
                   ip, op, start_ip, start_op);
   parameter N=3;  // number of inputs to FFT: 2^N
@@ -33,7 +32,6 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
   integer stage_launch, output_countdown;
   // ----------------------------------
   // ----------------------------------
-/*
 function fpt f_mul(fpt a, fpt b);
   fpt_mul temp;
   begin
@@ -41,11 +39,11 @@ function fpt f_mul(fpt a, fpt b);
     f_mul = temp[47:16];
   end
 endfunction
-*/
+/*
 function fpt f_mul(fpt a, fpt b);
   f_mul = a*b;
 endfunction
-
+*/
 
   initial begin
     integer i;
@@ -111,8 +109,8 @@ endfunction
     begin
       if (timemux_clk == 1)
       begin
-        get_twiddle_val[1] = 1.0;
-        get_twiddle_val[0] = 0.0;
+        get_twiddle_val[1] = 1<<16;
+        get_twiddle_val[0] = 0;
       end
       else
       begin
