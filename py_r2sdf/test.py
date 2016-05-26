@@ -9,11 +9,30 @@ def parse_args():
     return parser.parse_args()
 
 
+ip = np.array([
+11,
+10,
+2,
+3,
+1,
+3,
+21,
+31,
+0,
+10,
+2,
+3,
+1,
+3,
+21,
+31
+])
+
 if __name__ == '__main__':
     args = parse_args()
     if args.seed >= 0:
         np.random.seed(args.seed)
-    ip = np.random.randn(args.N_ip).astype(np.complex64)
+    #ip = np.random.randn(args.N_ip).astype(np.complex64)
     op_np_fft = np.around(np.fft.fft(ip), decimals=3)
     op_r2sdf_fft = np.around(algo.sim_flow(ip), decimals=3)
     if np.array_equal(op_r2sdf_fft, op_np_fft):

@@ -68,10 +68,15 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     // update timemux_clk signals
     // update twiddle_idx
     begin
-      if (timemux_clk_count == 0)
+      if (n == N)
         timemux_clk =~ timemux_clk;
       else
-        timemux_clk = timemux_clk;
+      begin
+        if (timemux_clk_count == 0)
+          timemux_clk =~ timemux_clk;
+        else
+          timemux_clk = timemux_clk;
+      end
       if (period_count == 0)
         twiddle_idx = twiddle_idx + 1;
       else

@@ -1,17 +1,17 @@
 // generate block: 
 // http://stackoverflow.com/questions/33899691/instantiate-modules-in-generate-for-loop-in-verilog
 `timescale 1ns/100ps
-module fft (clk, start_ip, ip, op_arr);
+module fft (clk, start_ip, ip, op);
   parameter N=3;
   input clk;
   // TODO: convert data type
   input real ip;
   input start_ip;
-  output real op_arr[(1<<N)-1:0][1:0];
+  real op_arr[(1<<N)-1:0][1:0];
   // TODO: should be what type??
   real sig[N:0][1:0];
   reg [N:0] start_sig;
-  real op[1:0];
+  output real op[1:0];
   wire [N-1:0] shuffle_idx[(1<<N)-1:0];
   integer countdown;
 `include "trigonometric_table.v"
@@ -51,7 +51,7 @@ module fft (clk, start_ip, ip, op_arr);
     integer exp = 0;
     begin
       for (exp=0; exp<(1<<(n-1)); exp=exp+1)
-        sin_arr_n[exp] = sin[(1<<(MAX_N-n+1))*exp];
+        sin_arr_n[exp] = -sin[(1<<(MAX_N-n+1))*exp];
     end
   endfunction
   // TODO:
@@ -68,6 +68,7 @@ module fft (clk, start_ip, ip, op_arr);
       countdown = (1<<N);
     if (countdown > 0)
     begin
+      op = sig[N];
       op_arr[shuffle_idx[N-countdown]] = op;
       countdown = countdown - 1;
     end

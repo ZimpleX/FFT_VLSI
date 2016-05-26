@@ -7,10 +7,10 @@ module fft_tb ();
   real ip_arr[(1<<N)-1:0];
   real ip;
   reg start_ip;
-  real op_arr[(1<<N)-1:0][1:0];
+  real op[1:0];
   integer idx;
 
-  fft #(.N(N)) fft_instance(.clk,.start_ip,.ip,.op_arr);
+  fft #(.N(N)) fft_instance(.clk,.start_ip,.ip,.op;
 
   initial begin
 `include "ip_arr.v"
