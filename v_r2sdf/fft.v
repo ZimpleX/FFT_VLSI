@@ -1,7 +1,7 @@
 // generate block: 
 // http://stackoverflow.com/questions/33899691/instantiate-modules-in-generate-for-loop-in-verilog
 `include "sys_macro.vh"
-module fft (clk, start_ip, ip, op_raw, op_shuffled);
+module fft (clk, start_ip, ip, op_raw, op_shuffled, op_ready);
   parameter N=3;
   input clk;
   // TODO: convert data type
@@ -12,6 +12,7 @@ module fft (clk, start_ip, ip, op_raw, op_shuffled);
   // TODO: should be what type??
   fpt sig[N:0][1:0];
   reg [N:0] start_sig;
+  output reg op_ready;
   output fpt op_raw[1:0];
   output fpt op_shuffled[1:0];
   wire [N-1:0] shuffle_idx[(1<<N)-1:0];
@@ -33,6 +34,7 @@ module fft (clk, start_ip, ip, op_raw, op_shuffled);
   endgenerate
 
   initial begin
+    op_ready = 0;
     countdown = -1;
     sig[0][1] = ip;
     sig[0][0] = 0.0;
@@ -66,6 +68,7 @@ module fft (clk, start_ip, ip, op_raw, op_shuffled);
     begin
       countdown = (1<<N);
       op_arr_bk = op_arr;
+      op_ready = 1;
     end
     if (start_sig[N] == 1)
       countdown = (1<<N);

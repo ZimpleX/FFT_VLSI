@@ -5,12 +5,13 @@ module fft_tb ();
   fpt ip_arr_converted[3*(1<<N)-1:0];
   fpt ip;
   reg start_ip;
+  reg op_ready;
   fpt op_raw[1:0];
   fpt op_shuffled[1:0];
   integer idx;
   
   convert_ip #(.length(3*(1<<N))) convert_ip_instance(ip_arr_converted);
-  fft #(.N(N)) fft_instance(.clk,.start_ip,.ip,.op_raw,.op_shuffled);
+  fft #(.N(N)) fft_instance(.clk,.start_ip,.ip,.op_raw,.op_shuffled,.op_ready);
 
   initial begin
     clk = 1;
