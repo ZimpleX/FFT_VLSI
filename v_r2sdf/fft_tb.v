@@ -4,13 +4,14 @@
 module fft_tb ();
   parameter N = 4;
   reg clk;
-  real ip_arr[(1<<N)-1:0];
+  real ip_arr[3*(1<<N)-1:0];
   real ip;
   reg start_ip;
-  real op[1:0];
+  real op_raw[1:0];
+  real op_shuffled[1:0];
   integer idx;
 
-  fft #(.N(N)) fft_instance(.clk,.start_ip,.ip,.op;
+  fft #(.N(N)) fft_instance(.clk,.start_ip,.ip,.op_raw,.op_shuffled);
 
   initial begin
 `include "ip_arr.v"
@@ -18,7 +19,7 @@ module fft_tb ();
     idx = 0;
     start_ip = 1;
     #(`CLK) start_ip = 0;
-    #(`CLK*(1<<N)*3) $finish;
+    #(`CLK*(1<<N)*15) $finish;
   end
 
   always @(posedge clk) begin
