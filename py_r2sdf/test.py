@@ -11,23 +11,22 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(itr):
-    args = parse_args()
-    if args.ip_data_file is None:
-        if args.seed >= 0:
-            np.random.seed(args.seed)
-        num = np.random.randn(itr*args.N_ip).astype(np.complex64)
+def main(itr, ip_data_file, N_ip, seed, verbose):
+    if ip_data_file is None:
+        if seed >= 0:
+            np.random.seed(seed)
+        num = np.random.randn(itr*N_ip).astype(np.complex64)
     else:
-        f_name = args.ip_data_file
+        f_name = ip_data_file
         f = open(f_name)
         line = f.read().split('\n')[0:-1]
         num = np.array([float(i.split(' ')[-1][0:-1]) for i in line])
     for r in range(itr):
-        ip = num[r*(2**args.N_ip):(r+1)*(2**args.N_ip)]
-        if ip.shape[0] < 2**args.N_ip:
+        ip = num[r*(2**N_ip):(r+1)*(2**N_ip)]
+        if ip.shape[0] < 2**N_ip:
             exit()
         op_np_fft = np.around(np.fft.fft(ip), decimals=3)
-        op_r2sdf_fft = np.around(algo.sim_flow(ip,args.verbose), decimals=3)
+        op_r2sdf_fft = np.around(algo.sim_flow(ip,verbose), decimals=3)
         if np.array_equal(op_r2sdf_fft, op_np_fft):
             print("\n\n============")
             print("test PASSED!")
@@ -36,7 +35,7 @@ def main(itr):
             print("\n\n************")
             print("test FAILED!")
             print("************\n\n")
-        if args.verbose:
+        if verbose:
             print('-'*100)
             print('----   correct      '+'-'*80)
             l = op_np_fft.shape[0]
@@ -48,4 +47,5 @@ def main(itr):
 
 
 if __name__ == '__main__':
-    main(5)
+    args = parse_args()
+    main(5, args.ip_data_file, args.N_ip, args.seed, args.verbose)
