@@ -1,9 +1,4 @@
 `include "sys_macro.vh"
-`ifdef DTYPE_FIXED_POINT
-  `include "ip_arr_int.v"
-`else
-  `include "ip_arr_real.v"
-`endif
 module convert_ip (ip_arr_converted);
   parameter length=8;
   t_ip_raw ip_arr_raw[length-1:0];
@@ -13,6 +8,13 @@ module convert_ip (ip_arr_converted);
     integer i,j;
     reg [31:0] temp;
     begin
+
+`ifdef DTYPE_FIXED_POINT
+  `include "ip_arr_int.v"
+`else
+  `include "ip_arr_real.v"
+`endif
+
 `ifdef DTYPE_FIXED_POINT
       for (i=0; i<length; i=i+1)
       begin

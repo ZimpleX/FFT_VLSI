@@ -41,8 +41,18 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
 `ifdef DTYPE_FIXED_POINT
   function fpt f_mul(fpt a, fpt b);
     fpt_mul temp;
+    fpt_mul a_ext,b_ext;
     begin
-      temp = a*b;
+      // sign extension first
+      if (a[15] == 0)
+        a_ext = {32'h0000_0000,a};
+      else
+        a_ext = {32'hffff_ffff,a};
+      if (b[15] == 0)
+        b_ext = {32'h0000_0000,b};
+      else
+        b_ext = {32'hffff_ffff,b};
+      temp = a_ext*b_ext;
       f_mul = temp[47:16];
     end
   endfunction
@@ -109,7 +119,7 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
                   reg timemux_clk,
                   integer twiddle_idx,
                   const ref reg [N-1:0] shuffle_idx[(1<<N)-1:0],
-                  fpt _db_neg_sum[1:0]);
+                  fpt _db_trig[1:0]);
     // return twiddle value
     //  [1]:  real part
     //  [0]: imaginary part
@@ -131,7 +141,7 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
         get_twiddle_val = expj(twiddle_exp);
       end
       // DEBUG  ******************************
-      _db_neg_sum = get_twiddle_val;
+      _db_trig = get_twiddle_val;
       // *************************************
     end
   endfunction
@@ -227,14 +237,14 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     begin
       // Don't increment warmup_count anymore
       ctrl_timemux(timemux_clk_count, period_count, timemux_clk, twiddle_idx);
-      twiddle_val = get_twiddle_val(timemux_clk,twiddle_idx,shuffle_idx_reg);
+      twiddle_val = get_twiddle_val(timemux_clk,twiddle_idx,shuffle_idx_reg, _db_trig);
       if (timemux_clk == 1)
       begin
         op = get_op_shift_buf(buf_real,buf_img,ip_reg,twiddle_val);
       end
       else
       begin
-        op = get_op_butterfly(buf_real,buf_img,ip_reg,twiddle_val);
+        op = get_op_butterfly(buf_real,buf_img,ip_reg,twiddle_val,_db_neg_product,_db_neg_sum);
       end
     end
     else

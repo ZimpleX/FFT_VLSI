@@ -1,11 +1,11 @@
 `include "sys_macro.vh"
 `ifdef DTYPE_FIXED_POINT
-  `include "trigonometric_table_real.v"
-`else
   `include "trigonometric_table_fpt.v"
+`else
+  `include "trigonometric_table_real.v"
 `endif
 module fft (clk, start_ip, ip, op_raw, op_shuffled, op_ready,
-          _db_neg_sum_n, _db_trig_n, _db_neg_sum_n);
+          _db_neg_product_n, _db_neg_sum_n, _db_trig_n);
   parameter N=3;
   input clk;
   // TODO: convert data type
@@ -34,9 +34,9 @@ module fft (clk, start_ip, ip, op_raw, op_shuffled, op_ready,
       fpt sin_arr[1<<(N-1)] = sin_arr_n(n);
       bf_stage #(.N(N),.n(n)) (.clk,.shuffle_idx,.cos_arr,.sin_arr,
               .ip(sig[n-1]),.op(sig[n]),.start_ip(start_sig[n-1]),.start_op(start_sig[n]),
-              ._db_neg_product(_db_neg_product_n[n]),
-              ._db_trig(_db_trig_n[n]),
-              ._db_neg_sum(_db_neg_sum_n[n]));
+              ._db_neg_product(_db_neg_product_n[n-1]),
+              ._db_trig(_db_trig_n[n-1]),
+              ._db_neg_sum(_db_neg_sum_n[n-1]));
     end
   endgenerate
 

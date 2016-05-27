@@ -5,8 +5,17 @@ module fpt_tb();
   fpt c;
   function fpt f_mul(fpt a, fpt b);
     fpt_mul temp;
+    fpt_mul a_ext,b_ext;
     begin
-      temp = a*b;
+      if (a[15] == 0)
+        a_ext = {32'h0000_0000,a};
+      else
+        a_ext = {32'hffff_ffff,a};
+      if (b[15] == 0)
+        b_ext = {32'h0000_0000,b};
+      else
+        b_ext = {32'hffff_ffff,b};
+      temp = a_ext*b_ext;
       f_mul = temp[47:16];
     end
   endfunction

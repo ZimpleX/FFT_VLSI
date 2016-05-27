@@ -40,7 +40,7 @@ def main(dtype, N):
     for trig in trig_dict:
         f.write('parameter fpt {} [0:(1<<MAX_N)-1] = {{\n'.format(trig))
         for i in range(n):
-            deli = (i==n-1) and ',' or ' '
+            deli = (i==n-1) and ' ' or ','
             func = trig_dict[trig][0]
             sign = trig_dict[trig][1]
             if dtype == 'fpt':

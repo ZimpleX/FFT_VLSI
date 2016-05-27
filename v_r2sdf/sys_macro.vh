@@ -8,7 +8,7 @@
 `ifdef DTYPE_FIXED_POINT
   typedef integer t_ip_raw;
   typedef reg [15:-16] fpt;
-  typedef reg [62:0] fpt_mul;
+  typedef reg [63:0] fpt_mul;
 `else
   typedef real t_ip_raw;
   typedef real fpt;
