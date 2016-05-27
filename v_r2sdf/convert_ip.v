@@ -1,4 +1,5 @@
 `include "sys_macro.vh"
+`include "ip_arr.v"
 module convert_ip (ip_arr_converted);
   parameter length=8;
   t_ip_raw ip_arr_raw[length-1:0];
@@ -8,7 +9,6 @@ module convert_ip (ip_arr_converted);
     integer i,j;
     reg [31:0] temp;
     begin
-`include "ip_arr.v"
       for (i=0; i<length; i=i+1)
       begin
         for (j=0; j<32; j=j+1)

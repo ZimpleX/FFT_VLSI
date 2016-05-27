@@ -1,6 +1,7 @@
 // generate block: 
 // http://stackoverflow.com/questions/33899691/instantiate-modules-in-generate-for-loop-in-verilog
 `include "sys_macro.vh"
+`include "trigonometric_table.v"
 module fft (clk, start_ip, ip, op_raw, op_shuffled, op_ready);
   parameter N=3;
   input clk;
@@ -17,7 +18,6 @@ module fft (clk, start_ip, ip, op_raw, op_shuffled, op_ready);
   output fpt op_shuffled[1:0];
   wire [N-1:0] shuffle_idx[(1<<N)-1:0];
   integer countdown;
-`include "trigonometric_table.v"
   // NOTE: reg / output reg: when is it updated?
   //      should be indicated by the "always" block!!
   //      Should use wire to connect modules, cuz bf module output is already
