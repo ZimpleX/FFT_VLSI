@@ -28,22 +28,22 @@ def main(itr, ip_data_file, N_ip, seed, verbose):
         op_np_fft = np.around(np.fft.fft(ip), decimals=3)
         op_r2sdf_fft = np.around(algo.sim_flow(ip,verbose), decimals=3)
         if np.array_equal(op_r2sdf_fft, op_np_fft):
-            print("\n\n============")
-            print("test PASSED!")
-            print("============\n\n")
+            print("\t\t============")
+            print("\t\ttest PASSED!")
+            print("\t\t============")
         else:
-            print("\n\n************")
-            print("test FAILED!")
-            print("************\n\n")
+            print("\t\t************")
+            print("\t\ttest FAILED!")
+            print("\t\t************")
         if verbose:
-            print('-'*100)
-            print('----   correct      '+'-'*80)
+            print('\t\t'+'-'*100)
+            print('\t\t----   correct      '+'-'*80)
             l = op_np_fft.shape[0]
             fmt = '  '.join(['{:.2f}']*l)
             _ = np.array([i.real for i in op_np_fft])
-            print(fmt.format(*_))
+            print('\t\t'+fmt.format(*_))
             _ = np.array([i.imag for i in op_np_fft])
-            print(fmt.format(*_))
+            print('\t\t'+fmt.format(*_))
 
 
 if __name__ == '__main__':
