@@ -9,9 +9,16 @@ module fft_tb ();
   fpt op_raw[1:0];
   fpt op_shuffled[1:0];
   integer idx;
+
+  // DEBUG  ***************************
+  fpt _db_neg_product_n[N-1:0][2:0];
+  fpt _db_trig_n[N-1:0][1:0];
+  fpt _db_neg_sum_n[N-1:0];
+  // **********************************
   
   convert_ip #(.length(3*(1<<N))) convert_ip_instance(ip_arr_converted);
-  fft #(.N(N)) fft_instance(.clk,.start_ip,.ip,.op_raw,.op_shuffled,.op_ready);
+  fft #(.N(N)) fft_instance(.clk,.start_ip,.ip,.op_raw,.op_shuffled,.op_ready,
+      ._db_neg_product_n,._db_trig_n,._db_neg_sum_n);
 
   initial begin
     clk = 1;

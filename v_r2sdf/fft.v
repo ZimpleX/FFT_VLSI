@@ -1,8 +1,11 @@
-// generate block: 
-// http://stackoverflow.com/questions/33899691/instantiate-modules-in-generate-for-loop-in-verilog
 `include "sys_macro.vh"
-`include "trigonometric_table.v"
-module fft (clk, start_ip, ip, op_raw, op_shuffled, op_ready);
+`ifdef DTYPE_FIXED_POINT
+  `include "trigonometric_table_real.v"
+`else
+  `include "trigonometric_table_fpt.v"
+`endif
+module fft (clk, start_ip, ip, op_raw, op_shuffled, op_ready,
+          _db_neg_sum_n, _db_trig_n, _db_neg_sum_n);
   parameter N=3;
   input clk;
   // TODO: convert data type
@@ -10,7 +13,6 @@ module fft (clk, start_ip, ip, op_raw, op_shuffled, op_ready);
   input start_ip;
   fpt op_arr[(1<<N)-1:0][1:0];
   fpt op_arr_bk[(1<<N)-1:0][1:0];
-  // TODO: should be what type??
   fpt sig[N:0][1:0];
   reg [N:0] start_sig;
   output reg op_ready;
@@ -18,10 +20,12 @@ module fft (clk, start_ip, ip, op_raw, op_shuffled, op_ready);
   output fpt op_shuffled[1:0];
   wire [N-1:0] shuffle_idx[(1<<N)-1:0];
   integer countdown;
-  // NOTE: reg / output reg: when is it updated?
-  //      should be indicated by the "always" block!!
-  //      Should use wire to connect modules, cuz bf module output is already
-  //      regged. 
+  // DEBUG  ********************************
+  output fpt _db_neg_product_n[N-1:0][2:0];
+  output fpt _db_trig_n[N-1:0][1:0];
+  output fpt _db_neg_sum_n[N-1:0];
+  // ***************************************
+
   gen_shuffle_idx #(.N(N)) shuffle_instance(.shuffle_idx);
   generate
     genvar n;
@@ -29,7 +33,10 @@ module fft (clk, start_ip, ip, op_raw, op_shuffled, op_ready);
       fpt cos_arr[1<<(N-1)] = cos_arr_n(n);
       fpt sin_arr[1<<(N-1)] = sin_arr_n(n);
       bf_stage #(.N(N),.n(n)) (.clk,.shuffle_idx,.cos_arr,.sin_arr,
-              .ip(sig[n-1]),.op(sig[n]),.start_ip(start_sig[n-1]),.start_op(start_sig[n]));
+              .ip(sig[n-1]),.op(sig[n]),.start_ip(start_sig[n-1]),.start_op(start_sig[n]),
+              ._db_neg_product(_db_neg_product_n[n]),
+              ._db_trig(_db_trig_n[n]),
+              ._db_neg_sum(_db_neg_sum_n[n]));
     end
   endgenerate
 
@@ -56,8 +63,6 @@ module fft (clk, start_ip, ip, op_raw, op_shuffled, op_ready);
         sin_arr_n[exp] = sin[(1<<(MAX_N-n+1))*exp];
     end
   endfunction
-  // TODO:
-  // final shuffle output
   // -----------------------------
   // -----------------------------
   always @(posedge clk)
