@@ -1,49 +1,59 @@
 import math
+import argparse
 
-f_name = 'trigonometric_table.v'
 
-def fixed_point(v):
+def parse_args():
+    parser = argparse.ArgumentParser('generate trig tabe')
+    parser.add_argument('--dtype', type=str, choices=['real','fpt'], required=True, help='data format')
+    parser.add_argument('--N', type=int, default=8, help='partition pi into 2^N parts')
+    return parser.parse_args()
+    
+def decimal_to_binary(v, prefix, num_digit=16):
+    assert v >= 0
+    s = 0.
+    for exp in range(num_digit):
+        if not exp%4: prefix += '_'
+        if s <= v and s+2**(-exp-1) > v:
+            prefix += '0'
+        else:
+            s += 2**(-exp-1)
+            prefix += '1'
+    return prefix
+
+
+def trig_fixed_point(v):
     if v>=0:
-        ret = '32\'b0000_0000_0000_0000'
-        s = 0.
-        for exp in range(16):
-            if not exp%4: ret += '_'
-            if s <= v and s + 2**(-exp-1) > v:
-                ret += '0'
-            else:
-                s += 2**(-exp-1)
-                ret += '1'
+        prefix = '32\'b0000_0000_0000_0000'
+        ret = decimal_to_binary(v, prefix)
     else:
-        ret = '32\'b1111_1111_1111_1111'
-        v = 1+v
-        s = 0.
-        for exp in range(16):
-            if not exp%4: ret += '_'
-            if s <= v and s + 2**(-exp-1) > v:
-                ret += '0'
-            else:
-                s += 2**(-exp-1)
-                ret += '1'
+        prefix = '32\'b1111_1111_1111_1111'
+        ret = decimal_to_binary(1+v, prefix)
     return ret
 
-if __name__ == '__main__':
-    N = 9
-    n = 2**9
+def main(dtype, N):
+    n = 2**N
+    f_name = 'trigonometric_table_{}.v'.format(dtype)
     f = open(f_name, 'w')
     f.write('parameter MAX_N = {};\n'.format(N))
-    f.write('parameter fpt cos [0:(1<<MAX_N)-1] = {\n')
-    for i in range(n):
-        deli = ','
-        if i == n-1:
-            deli = ''
-        #f.write('    {}{}\n'.format(fixed_point(math.cos(i/n*math.pi)),deli))
-        f.write('    {:.3f}{}\n'.format(math.cos(i/n*math.pi),deli))
-    f.write('};\n')
-    f.write('parameter fpt sin [0:(1<<MAX_N)-1] = {\n')
-    for i in range(n):
-        deli = ','
-        if i == n-1:
-            deli = ''
-        #f.write('    {}{}\n'.format(fixed_point(-math.sin(i/n*math.pi)),deli))
-        f.write('    {:.3f}{}\n'.format(-math.sin(i/n*math.pi),deli))
-    f.write('};\n')
+    trig_dict = {'cos': (math.cos,1), 
+                'sin': (math.sin,-1)}
+    for trig in trig_dict:
+        f.write('parameter fpt {} [0:(1<<MAX_N)-1] = {{\n'.format(trig))
+        for i in range(n):
+            deli = (i==n-1) and ',' or ' '
+            func = trig_dict[trig][0]
+            sign = trig_dict[trig][1]
+            if dtype == 'fpt':
+                f.write('    {}{}\n'.format( \
+                    trig_fixed_point(sign*func(i/n*math.pi)),deli))
+            else:
+                f.write('    {:.3f}{}\n'.format( \
+                    sign*func(i/n*math.pi),deli))
+        f.write('};\n')
+
+
+
+
+if __name__ == '__main__':
+    args = parse_args()
+    main(args.dtype, args.N)
