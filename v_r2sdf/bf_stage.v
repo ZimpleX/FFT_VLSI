@@ -39,7 +39,7 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
   // ----------------------------------
   // ----------------------------------
 `ifdef DTYPE_FIXED_POINT
-  function fpt f_mul(fpt a, fpt b);
+  function automatic fpt f_mul(fpt a, fpt b);
     fpt_mul temp;
     fpt_mul a_ext,b_ext;
     begin
@@ -57,7 +57,7 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     end
   endfunction
 `else
-  function fpt f_mul(fpt a, fpt b);
+  function automatic fpt f_mul(fpt a, fpt b);
     f_mul = a*b;
   endfunction
 `endif
@@ -89,7 +89,7 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
   end
   // ----------------------------------
   // ----------------------------------
-  function void ctrl_timemux (
+  function automatic void ctrl_timemux (
                   ref reg [N-n-1:0] timemux_clk_count, 
                   ref reg [N-n:0] period_count,
                   ref reg timemux_clk,
@@ -115,7 +115,7 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     end
   endfunction
   // ---------------------------------
-  function cpx get_twiddle_val(
+  function automatic cpx get_twiddle_val(
                   reg timemux_clk,
                   integer twiddle_idx,
                   const ref reg [N-1:0] shuffle_idx[(1<<N)-1:0],
@@ -146,7 +146,7 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     end
   endfunction
   // ---------------------------------
-  function cpx get_op_shift_buf(
+  function automatic cpx get_op_shift_buf(
                   ref fpt buf_real[delay-1:0],
                   ref fpt buf_img[delay-1:0],
                   fpt ip[1:0],
@@ -166,7 +166,7 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     end
   endfunction
   // ---------------------------------
-  function cpx get_op_butterfly(
+  function automatic cpx get_op_butterfly(
                   ref fpt buf_real[delay-1:0],
                   ref fpt buf_img[delay-1:0],
                   fpt ip[1:0],
@@ -202,7 +202,7 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     end
   endfunction
   // ---------------------------------
-  function cpx mul(fpt a[1:0], fpt b[1:0]);
+  function automatic cpx mul(fpt a[1:0], fpt b[1:0]);
     // complex number multiplication
     begin
       mul[1] = f_mul(a[1],b[1]) - f_mul(a[0],b[0]);
@@ -210,7 +210,7 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
     end
   endfunction
   // ---------------------------------
-  function cpx expj(integer twiddle_exp);
+  function automatic cpx expj(integer twiddle_exp);
     begin
       expj[1] = cos_arr[twiddle_exp];
       expj[0] = sin_arr[twiddle_exp];

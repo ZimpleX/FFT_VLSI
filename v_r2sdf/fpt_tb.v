@@ -3,7 +3,7 @@ module fpt_tb();
   fpt a;
   fpt b;
   fpt c;
-  function fpt f_mul(fpt a, fpt b);
+  function automatic fpt f_mul(fpt a, fpt b);
     fpt_mul temp;
     fpt_mul a_ext,b_ext;
     begin

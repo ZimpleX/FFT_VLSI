@@ -6,7 +6,6 @@ module convert_ip (ip_arr_converted);
 
   initial begin
     integer i,j;
-    reg [31:0] temp;
     begin
 
 `ifdef DTYPE_FIXED_POINT
@@ -17,13 +16,7 @@ module convert_ip (ip_arr_converted);
 
 `ifdef DTYPE_FIXED_POINT
       for (i=0; i<length; i=i+1)
-      begin
-        for (j=0; j<32; j=j+1)
-        begin
-          temp[j] = ip_arr_raw[i][j];
-        end
-        ip_arr_converted[i] = temp<<16;
-      end
+        ip_arr_converted[i] = (ip_arr_raw[i][31:0])<<16;
 `else
       ip_arr_converted = ip_arr_raw;
 `endif
