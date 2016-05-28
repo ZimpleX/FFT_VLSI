@@ -69,13 +69,16 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
   end
   // ----------------------------------
   // ----------------------------------
-  function automatic void ctrl_timemux (
-                  ref reg [N-n-1:0] timemux_clk_count, 
-                  ref reg [N-n:0] period_count,
-                  ref reg timemux_clk,
-                  ref integer twiddle_idx);
-    // update timemux_clk signals
-    // update twiddle_idx
+  // ref
+  function automatic [(N-n+N-n+1+32):0] ctrl_timemux (
+                  reg [N-n-1:0] timemux_clk_count, 
+                  reg [N-n:0] period_count,
+                  reg timemux_clk,
+                  integer twiddle_idx);
+    // update timemux_clk         [0]
+    // update timemux_clk_count   [(N-n):1]
+    // update period_count        [(N-n+N-n+1):(N-n+1)]
+    // update twiddle_idx         [(N-n+N-n+1+32):(N-n+N-n+2)]
     begin
       if (n == N)
         timemux_clk =~ timemux_clk;
@@ -92,13 +95,17 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
         twiddle_idx = twiddle_idx;
       timemux_clk_count = timemux_clk_count + 1;
       period_count = period_count + 1;
+      ctrl_timemux[0] = timemux_clk;
+      ctrl_timemux[(N-n):1] = timemux_clk_count;
+      ctrl_timemux[(N-n+N-n+1):(N-n+1)] = period_count;
+      ctrl_timemux[(N-n+N-n+1+32):(N-n+N-n+2)] = twiddle_idx;
     end
   endfunction
   // ---------------------------------
   function automatic cpx get_twiddle_val(
                   reg timemux_clk,
                   integer twiddle_idx,
-                  const ref reg [N-1:0] shuffle_idx[(1<<N)-1:0],
+                  reg [N-1:0] shuffle_idx[(1<<N)-1:0],
                   fpt _db_trig[1:0]);
     // return twiddle value
     //  [1]:  real part
@@ -126,29 +133,27 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
     end
   endfunction
   // ---------------------------------
-  function automatic cpx get_op_shift_buf(
-                  ref fpt buf_real[delay-1:0],
-                  ref fpt buf_img[delay-1:0],
+  // ref
+  function automatic cpx[delay:0] get_op_shift_buf(
+                  fpt buf_real[delay-1:0],
+                  fpt buf_img[delay-1:0],
                   fpt ip[1:0],
                   fpt twiddle_val[1:0]);
     // Last In First Out Queue.
-    integer i;
+    // return a queue with delay+1 elements, first element is the one just
+    // shifted out.
     begin
-      get_op_shift_buf[1] = buf_real[delay-1];
-      get_op_shift_buf[0] = buf_img[delay-1];
-      for (i=delay-2; i>=0; i=i-1)
-      begin
-        buf_real[i+1] = buf_real[i];
-        buf_img[i+1] = buf_img[i];
-      end
-      buf_real[0] = ip[1];
-      buf_img[0] = ip[0];
+      get_op_shift_buf[1][delay:1] = buf_real;
+      get_op_shift_buf[0][delay:1] = buf_img;
+      get_op_shift_buf[1][0] = ip[1];
+      get_op_shift_buf[0][0] = ip[0];
     end
   endfunction
   // ---------------------------------
-  function automatic cpx get_op_butterfly(
-                  ref fpt buf_real[delay-1:0],
-                  ref fpt buf_img[delay-1:0],
+  // ref
+  function automatic cpx[delay:0] get_op_butterfly(
+                  fpt buf_real[delay-1:0],
+                  fpt buf_img[delay-1:0],
                   fpt ip[1:0],
                   fpt twiddle_val[1:0],
                   fpt _db_neg_product[2:0],
@@ -156,27 +161,20 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
     // ip <butterfly> buf[delay-1]
     // "+" value: push to op
     // "-" value: push to buf
-    fpt bufN[1:0];
     fpt product[1:0];
-    integer i;
     begin
+      get_op_butterfly[1][delay-1:1] = buf_real[delay-2:0];
+      get_op_butterfly[0][delay-1:1] = buf_img[delay-2:0];
       product = mul(ip,twiddle_val);
-      bufN[1] = buf_real[delay-1];
-      bufN[0] = buf_img[delay-1];
-      // Shift LIFO Queue.
-      for (i=delay-2; i>=0; i=i-1) begin
-        buf_real[i+1] = buf_real[i];
-        buf_img[i+1] = buf_img[i];
-      end
-      buf_real[0] = bufN[1] - product[1];
-      buf_img[0] = bufN[0] - product[0];
-      get_op_butterfly[1] = bufN[1] + product[1];
-      get_op_butterfly[0] = bufN[0] + product[0];
+      {get_op_butterfly[1][0],get_op_butterfly[0][0]} = 
+            {buf_real[delay-1],buf_img[delay-1]} - product;
+      {get_op_butterfly[1][delay],get_op_butterfly[0][delay]} = 
+            {buf_real[delay-1],buf_img[delay-1]} + product;
       // DEBUG  ****************************
       _db_neg_product[0] = ip[1];
       _db_neg_product[1] = twiddle_val[1];
       _db_neg_product[2] = product[1];
-      _db_neg_sum = get_op_butterfly[1];
+      _db_neg_sum = get_op_butterfly[delay][1];
       // ***********************************
     end
   endfunction
@@ -216,12 +214,13 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
       end
 
       if (stage_launch == 1) begin
-        ctrl_timemux(timemux_clk_count, period_count, timemux_clk, twiddle_idx);
+        {twiddle_idx,period_count,timemux_clk_count,timemux_clk} = 
+          ctrl_timemux(timemux_clk_count, period_count, timemux_clk, twiddle_idx);
         twiddle_val = get_twiddle_val(timemux_clk,twiddle_idx,shuffle_idx_reg, _db_trig);
         if (timemux_clk == 1) begin
-          op = get_op_shift_buf(buf_real,buf_img,ip_reg,twiddle_val);
+          {op[1],buf_real,op[0],buf_img} = get_op_shift_buf(buf_real,buf_img,ip_reg,twiddle_val);
         end else begin
-          op = get_op_butterfly(buf_real,buf_img,ip_reg,twiddle_val,_db_neg_product,_db_neg_sum);
+          {op[1],buf_real,op[0],buf_img} = get_op_butterfly(buf_real,buf_img,ip_reg,twiddle_val,_db_neg_product,_db_neg_sum);
         end
       end else begin
         // idle
