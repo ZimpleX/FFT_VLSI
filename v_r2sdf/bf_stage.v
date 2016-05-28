@@ -10,7 +10,6 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
   reg [N-1:0] shuffle_idx_reg[(1<<N)-1:0];
   input fpt cos_arr[1<<(N-1)];
   input fpt sin_arr[1<<(N-1)];
-  // TODO: may switch to fixed point representation
   input fpt ip[1:0];
   fpt ip_reg[1:0];
   output fpt op[1:0];
@@ -28,7 +27,6 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
   integer stage_launch, output_countdown;
   // ----------------------------------
   // ----------------------------------
-`ifdef DTYPE_FIXED_POINT
   function automatic fpt f_mul(fpt a, fpt b);
     fpt_mul temp;
     fpt_mul a_ext,b_ext;
@@ -46,11 +44,6 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
       f_mul = temp[47:16];
     end
   endfunction
-`else
-  function automatic fpt f_mul(fpt a, fpt b);
-    f_mul = a*b;
-  endfunction
-`endif
   // ---------------------------------
   initial begin
     begin

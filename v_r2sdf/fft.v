@@ -1,9 +1,5 @@
 `include "sys_macro.vh"
-`ifdef DTYPE_FIXED_POINT
-  `include "trigonometric_table_fpt.v"
-`else
-  `include "trigonometric_table_real.v"
-`endif
+`include "trigonometric_table_fpt.v"
 module fft (reset, clk, start_ip, ip, op_raw, op_shuffled, op_ready);
   parameter N=3;
   input reset, clk;

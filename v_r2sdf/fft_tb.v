@@ -16,7 +16,7 @@ module fft_tb ();
   fft #(.N(N)) fft_instance(.reset,.clk,.start_ip,.ip,.op_raw,.op_shuffled,.op_ready);
 
   initial begin
-    f = $fopen("fft_op.log", "w");
+    f = $fopen("../data/fft_op.log", "w");
     clk = 1;
     reset = 1;
     idx = -1;
