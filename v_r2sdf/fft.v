@@ -48,7 +48,7 @@ module fft (clk, start_ip, ip, op_raw, op_shuffled, op_ready,
   end
   // -----------------------------
   // -----------------------------
-  function automatic t_trig_arr cos_arr_n(integer n);
+  function t_trig_arr cos_arr_n(integer n);
     // prepare smaller array for the intermediate stage
     integer exp = 0;
     begin
@@ -56,7 +56,7 @@ module fft (clk, start_ip, ip, op_raw, op_shuffled, op_ready,
         cos_arr_n[exp] = cos[(1<<(MAX_N-n+1))*exp];
     end
   endfunction
-  function automatic t_trig_arr sin_arr_n(integer n);
+  function t_trig_arr sin_arr_n(integer n);
     integer exp = 0;
     begin
       for (exp=0; exp<(1<<(n-1)); exp=exp+1)
