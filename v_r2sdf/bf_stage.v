@@ -1,15 +1,12 @@
 `include "sys_macro.vh"
-module bf_stage (clk, shuffle_idx, cos_arr, sin_arr, 
+module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr, 
                   ip, op, start_ip, start_op, 
                   _db_neg_product, _db_trig, _db_neg_sum);
   parameter N=3;  // number of inputs to FFT: 2^N
   parameter n=1;  // stage of the butterfly unit, start from 1.
   parameter delay = 1<<(N-n); // DON'T pass in this parameter!!
-  integer warmup; // wait for some cycles for synchronous among stages
-  integer warmup_count;
-  integer countdown;
 
-  input clk;
+  input reset, clk;
   input [N-1:0] shuffle_idx[(1<<N)-1:0];
   reg [N-1:0] shuffle_idx_reg[(1<<N)-1:0];
   input fpt cos_arr[1<<(N-1)];
@@ -24,7 +21,6 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
   reg timemux_clk;
   fpt twiddle_val[1:0];
   integer twiddle_idx;
-  integer period;
   reg [N-n-1:0] timemux_clk_count;
   reg [N-n:0] period_count;
   fpt buf_real[delay-1:0];   // buffer to store the delayed value
@@ -63,24 +59,8 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
 `endif
   // ---------------------------------
   initial begin
-    integer i;
     begin
-      ip_reg = ip;
-      shuffle_idx_reg = shuffle_idx;
-      warmup = 0;//n-1; // this is because output is reg.
-      countdown = 0;
-      for (i=1; i<=n-1; i=i+1)
-      begin
-        warmup = warmup + 1<<(N-i);
-      end
-      warmup_count = 0;
-
-      timemux_clk = 0;
-      twiddle_val[1] = 1.0;
-      twiddle_val[0]  = 0.0;
       twiddle_idx = -1;
-      period = 2*delay;
-      timemux_clk_count = 0;
       period_count = 0;
 
       stage_launch = 0;
@@ -184,8 +164,7 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
       bufN[1] = buf_real[delay-1];
       bufN[0] = buf_img[delay-1];
       // Shift LIFO Queue.
-      for (i=delay-2; i>=0; i=i-1)
-      begin
+      for (i=delay-2; i>=0; i=i-1) begin
         buf_real[i+1] = buf_real[i];
         buf_img[i+1] = buf_img[i];
       end
@@ -218,54 +197,46 @@ module bf_stage (clk, shuffle_idx, cos_arr, sin_arr,
   endfunction
   // ---------------------------------
   // ---------------------------------
-  always @(posedge clk)
-  begin
-    ip_reg = ip;
-    if (start_ip == 1)
-    begin // reset
-      timemux_clk = 0;
-      timemux_clk_count = 0;
-      output_countdown = 1<<(N-n);
-      stage_launch = 1;
-    end
-    else
-    begin
-      // idle
-    end
-
-    if (stage_launch == 1)
-    begin
-      // Don't increment warmup_count anymore
-      ctrl_timemux(timemux_clk_count, period_count, timemux_clk, twiddle_idx);
-      twiddle_val = get_twiddle_val(timemux_clk,twiddle_idx,shuffle_idx_reg, _db_trig);
-      if (timemux_clk == 1)
-      begin
-        op = get_op_shift_buf(buf_real,buf_img,ip_reg,twiddle_val);
-      end
-      else
-      begin
-        op = get_op_butterfly(buf_real,buf_img,ip_reg,twiddle_val,_db_neg_product,_db_neg_sum);
-      end
-    end
-    else
-    begin
-      // idle
-    end
-
-    if (start_op == 1)
-      start_op = 0;   // signal lasts for 1 clk
-    if (output_countdown == 0)
-    begin
-      start_op = 1;
+  always @(posedge clk or posedge reset) begin
+    if (reset) begin
+      stage_launch = 0;
       output_countdown = -1;
-    end
-    else if (output_countdown > 0 )
-    begin
-      output_countdown = output_countdown - 1;
-    end
-    else
-    begin
-      // do nothing
+    end else begin
+      ip_reg = ip;
+      if (start_ip == 1) begin // restart
+        timemux_clk = 0;
+        timemux_clk_count = 0;
+        period_count = 0;
+        twiddle_idx = -1;
+        output_countdown = 1<<(N-n);
+        shuffle_idx_reg = shuffle_idx;
+        stage_launch = 1;
+      end else begin
+        // idle
+      end
+
+      if (stage_launch == 1) begin
+        ctrl_timemux(timemux_clk_count, period_count, timemux_clk, twiddle_idx);
+        twiddle_val = get_twiddle_val(timemux_clk,twiddle_idx,shuffle_idx_reg, _db_trig);
+        if (timemux_clk == 1) begin
+          op = get_op_shift_buf(buf_real,buf_img,ip_reg,twiddle_val);
+        end else begin
+          op = get_op_butterfly(buf_real,buf_img,ip_reg,twiddle_val,_db_neg_product,_db_neg_sum);
+        end
+      end else begin
+        // idle
+      end
+
+      if (start_op == 1)
+        start_op = 0;   // signal lasts for 1 clk
+      if (output_countdown == 0) begin
+        start_op = 1;
+        output_countdown = -1;
+      end else if (output_countdown > 0 ) begin
+        output_countdown = output_countdown - 1;
+      end else begin
+        // do nothing
+      end
     end
   end
 
