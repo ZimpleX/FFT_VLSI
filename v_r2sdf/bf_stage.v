@@ -25,6 +25,7 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
   reg [N-n:0] period_count;
   fpt buf_real[delay-1:0];   // buffer to store the delayed value
   fpt buf_img[delay-1:0];
+  cpx_buf buf_inout;
   
   integer stage_launch, output_countdown;
   // DEBUG SIGNAL *********************
@@ -134,6 +135,30 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
   endfunction
   // ---------------------------------
   // ref
+  function automatic cpx_buf op_shift_buf(
+                  fpt buf_real[delay-1:0],
+                  fpt buf_img[delay-1:0],
+                  fpt ip[1:0],
+                  fpt twiddle_val[1:0]);
+    begin
+      op_shift_buf[1] = {buf_real[delay-1],buf_img[delay-1]};
+      op_shift_buf[0] = ip;
+    end
+  endfunction
+
+  function automatic cpx_buf op_butterfly(
+                  fpt buf_real[delay-1:0],
+                  fpt buf_img[delay-1:0],
+                  fpt ip[1:0],
+                  fpt twiddle_val[1:0]);
+    fpt product[1:0];
+    begin
+      product = mul(ip,twiddle_val);
+      op_butterfly[1] = {buf_real[delay-1],buf_img[delay-1]} + product;
+      op_butterfly[0] = {buf_real[delay-1],buf_img[delay-1]} - product;
+    end
+  endfunction
+  /*
   struct {
     cpx buf_element[delay:0];
   } buf_return;
@@ -152,8 +177,10 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
       get_op_shift_buf.buf_element[0][0] = ip[0];
     end
   endfunction
+  */
   // ---------------------------------
   // ref
+  /*
   function automatic buf_return get_op_butterfly(
                   fpt buf_real[delay-1:0],
                   fpt buf_img[delay-1:0],
@@ -181,6 +208,7 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
       // ***********************************
     end
   endfunction
+  */
   // ---------------------------------
   function automatic cpx mul(fpt a[1:0], fpt b[1:0]);
     // complex number multiplication
@@ -221,12 +249,19 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
           ctrl_timemux(timemux_clk_count, period_count, timemux_clk, twiddle_idx);
         twiddle_val = get_twiddle_val(timemux_clk,twiddle_idx,shuffle_idx_reg, _db_trig);
         if (timemux_clk == 1) begin
-          {op[1],buf_real,op[0],buf_img} = 
-            get_op_shift_buf(buf_real,buf_img,ip_reg,twiddle_val).buf_element;
+          //{op[1],buf_real,op[0],buf_img} = 
+          //  get_op_shift_buf(buf_real,buf_img,ip_reg,twiddle_val).buf_element;
+          buf_inout = op_shift_buf(buf_real,buf_img,ip,twiddle_val);
         end else begin
-          {op[1],buf_real,op[0],buf_img} = 
-            get_op_butterfly(buf_real,buf_img,ip_reg,twiddle_val,_db_neg_product,_db_neg_sum).buf_element;
+          //{op[1],buf_real,op[0],buf_img} = 
+          //  get_op_butterfly(buf_real,buf_img,ip_reg,twiddle_val,_db_neg_product,_db_neg_sum).buf_element;
+          buf_inout = op_butterfly(buf_real,buf_img,ip,twiddle_val);
         end
+        // shift buffer
+        buf_real[delay-1:1] = buf_real[delay-2:0];
+        buf_img[delay-1:1] = buf_img[delay-2:0];
+        {buf_real[0],buf_img[0]} = buf_inout[0];
+        op = buf_inout[1];
       end else begin
         // idle
       end
