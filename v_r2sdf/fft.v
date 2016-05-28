@@ -40,7 +40,7 @@ module fft (reset, clk, start_ip, ip, op_raw, op_shuffled, op_ready,
   endgenerate
   // -----------------------------
   // -----------------------------
-  function automatic [N-1:0][(1<<N)-1:0] gen_shuffle_idx();
+  function automatic t_shuffle_idx gen_shuffle_idx();
     integer j;
     reg [N:0] i;  // i must be N+1 bits. Otherwise below will be finite loop.
     reg [N-1:0] rev_i;

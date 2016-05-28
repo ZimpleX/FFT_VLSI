@@ -1,6 +1,6 @@
 `include "sys_macro.vh"
 module fft_tb ();
-  parameter N = 4;
+  parameter N = `N_;
   reg reset, clk;
   fpt ip_arr_converted[3*(1<<N)-1:0];
   fpt ip;
