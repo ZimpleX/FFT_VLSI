@@ -32,6 +32,7 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
   output fpt _db_neg_product[2:0];  // 0: a;  1: b; 2: a*b;
   output fpt _db_trig[1:0];         // 0: sin;  1: cos
   output fpt _db_neg_sum;
+  integer shift_count;
   // **********************************
   // ----------------------------------
   // ----------------------------------
@@ -261,8 +262,10 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
           buf_inout = op_butterfly(buf_real,buf_img,ip,twiddle_val);
         end
         // shift buffer
-        buf_real[delay-1:1] = buf_real[delay-2:0];
-        buf_img[delay-1:1] = buf_img[delay-2:0];
+        for (shift_count=0; shift_count<delay-1; shift_count=shift_count+1) begin
+          buf_real[shift_count+1] = buf_real[shift_count];
+          buf_img[shift_count+1] = buf_img[shift_count];
+        end
         buf_real[0] = buf_inout[0][1];
         buf_img[0] = buf_inout[0][0];
         op = buf_inout[1];
