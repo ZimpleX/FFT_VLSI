@@ -16,7 +16,7 @@
 
 `define N_ 4
 typedef fpt cpx [1:0];
-typedef fpt t_trig_arr[$];//[1<<(N-1)];
+typedef fpt t_trig_arr[1<<(`N_-1)];
 typedef reg [`N_-1:0] t_shuffle_idx [(1<<`N_)-1:0];
 
 `endif
