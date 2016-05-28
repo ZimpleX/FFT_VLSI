@@ -54,19 +54,25 @@ module fft (reset, clk, start_ip, ip, op_raw, op_shuffled, op_ready,
     end
   endfunction
   // -----------------------------
-  function t_trig_arr cos_arr_n(integer n);
+  function automatic t_trig_arr cos_arr_n(integer n);
     // prepare smaller array for the intermediate stage
     integer exp = 0;
     begin
-      for (exp=0; exp<(1<<(n-1)); exp=exp+1)
-        cos_arr_n[exp] = cos[(1<<(MAX_N-n+1))*exp];
+      for (exp=0; exp<(1<<(N-1)); exp=exp+1)
+        if (exp<(1<<(n-1)))
+          cos_arr_n[exp] = cos[(1<<(MAX_N-n+1))*exp];
+        else
+          cos_arr_n[exp] = 0;
     end
   endfunction
-  function t_trig_arr sin_arr_n(integer n);
+  function automatic t_trig_arr sin_arr_n(integer n);
     integer exp = 0;
     begin
-      for (exp=0; exp<(1<<(n-1)); exp=exp+1)
-        sin_arr_n[exp] = sin[(1<<(MAX_N-n+1))*exp];
+      for (exp=0; exp<(1<<(N-1)); exp=exp+1)
+        if (exp<(1<<(n-1)))
+          sin_arr_n[exp] = sin[(1<<(MAX_N-n+1))*exp];
+        else
+          sin_arr_n[exp] = 0;
     end
   endfunction
   // -----------------------------
