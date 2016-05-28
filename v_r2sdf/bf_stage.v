@@ -141,7 +141,8 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
                   fpt ip[1:0],
                   fpt twiddle_val[1:0]);
     begin
-      op_shift_buf[1] = {buf_real[delay-1],buf_img[delay-1]};
+      op_shift_buf[1][1] = buf_real[delay-1];
+      op_shift_buf[1][0] = buf_img[delay-1];
       op_shift_buf[0] = ip;
     end
   endfunction
@@ -154,8 +155,10 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
     fpt product[1:0];
     begin
       product = mul(ip,twiddle_val);
-      op_butterfly[1] = {buf_real[delay-1],buf_img[delay-1]} + product;
-      op_butterfly[0] = {buf_real[delay-1],buf_img[delay-1]} - product;
+      op_butterfly[1][1] = buf_real[delay-1] + product[1];
+      op_butterfly[1][0] = buf_img[delay-1] + product[0];
+      op_butterfly[0][1] = buf_real[delay-1] - product[1];
+      op_butterfly[0][0] = buf_img[delay-1] - product[0];
     end
   endfunction
   /*
@@ -260,7 +263,8 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
         // shift buffer
         buf_real[delay-1:1] = buf_real[delay-2:0];
         buf_img[delay-1:1] = buf_img[delay-2:0];
-        {buf_real[0],buf_img[0]} = buf_inout[0];
+        buf_real[0] = buf_inout[0][1];
+        buf_img[0] = buf_inout[0][0];
         op = buf_inout[1];
       end else begin
         // idle
