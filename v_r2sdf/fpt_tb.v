@@ -21,8 +21,8 @@ module fpt_tb();
   endfunction
 
   initial begin
-    #(`CLK) a = 32'h0026_0000;
-    b = 32'h0012_0000;
+    #(`CLK) a = 32'hfffd_0000;
+    b = 32'hffff_0000;
     #(`CLK) c = f_mul(a,b);
     #(`CLK*10) $finish;
   end
