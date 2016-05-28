@@ -84,8 +84,7 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
     begin
       if (n == N)
         timemux_clk =~ timemux_clk;
-      else
-      begin
+      else begin
         if (timemux_clk_count == 0)
           timemux_clk =~ timemux_clk;
         else
@@ -98,7 +97,8 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
       timemux_clk_count = timemux_clk_count + 1;
       period_count = period_count + 1;
       ctrl_timemux[0] = timemux_clk;
-      ctrl_timemux[(N-n):1] = timemux_clk_count;
+      if (n < N)
+        ctrl_timemux[(N-n):1] = timemux_clk_count;
       ctrl_timemux[(N-n+N-n+1):(N-n+1)] = period_count;
       ctrl_timemux[(N-n+N-n+1+32):(N-n+N-n+2)] = twiddle_idx;
     end
@@ -249,8 +249,12 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
       end
 
       if (stage_launch == 1) begin
-        {twiddle_idx,period_count,timemux_clk_count,timemux_clk} = 
-          ctrl_timemux(timemux_clk_count, period_count, timemux_clk, twiddle_idx);
+        if (n < N)
+          {twiddle_idx,period_count,timemux_clk_count,timemux_clk} = 
+            ctrl_timemux(timemux_clk_count, period_count, timemux_clk, twiddle_idx);
+        else
+          {twiddle_idx,period_count,timemux_clk} = 
+            ctrl_timemux(timemux_clk_count, period_count, timemux_clk, twiddle_idx);
         twiddle_val = get_twiddle_val(timemux_clk,twiddle_idx,shuffle_idx_reg, _db_trig);
         if (timemux_clk == 1) begin
           //{op[1],buf_real,op[0],buf_img} = 
