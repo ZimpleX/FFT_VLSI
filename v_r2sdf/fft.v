@@ -4,8 +4,7 @@
 `else
   `include "trigonometric_table_real.v"
 `endif
-module fft (reset, clk, start_ip, ip, op_raw, op_shuffled, op_ready,
-          _db_neg_product_n, _db_neg_sum_n, _db_trig_n);
+module fft (reset, clk, start_ip, ip, op_raw, op_shuffled, op_ready);
   parameter N=3;
   input reset, clk;
   // TODO: convert data type
@@ -20,11 +19,6 @@ module fft (reset, clk, start_ip, ip, op_raw, op_shuffled, op_ready,
   output fpt op_shuffled[1:0];
   reg [N-1:0] shuffle_idx[(1<<N)-1:0];
   integer countdown;
-  // DEBUG  ********************************
-  output fpt _db_neg_product_n[N-1:0][2:0];
-  output fpt _db_trig_n[N-1:0][1:0];
-  output fpt _db_neg_sum_n[N-1:0];
-  // ***************************************
 
   generate
     genvar n;
@@ -32,10 +26,7 @@ module fft (reset, clk, start_ip, ip, op_raw, op_shuffled, op_ready,
       fpt cos_arr[1<<(N-1)] = cos_arr_n(n);
       fpt sin_arr[1<<(N-1)] = sin_arr_n(n);
       bf_stage #(.N(N),.n(n)) (.reset,.clk,.shuffle_idx,.cos_arr,.sin_arr,
-              .ip(sig[n-1]),.op(sig[n]),.start_ip(start_sig[n-1]),.start_op(start_sig[n]),
-              ._db_neg_product(_db_neg_product_n[n-1]),
-              ._db_trig(_db_trig_n[n-1]),
-              ._db_neg_sum(_db_neg_sum_n[n-1]));
+              .ip(sig[n-1]),.op(sig[n]),.start_ip(start_sig[n-1]),.start_op(start_sig[n]));
     end
   endgenerate
   // -----------------------------

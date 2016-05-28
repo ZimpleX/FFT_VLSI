@@ -1,7 +1,6 @@
 `include "sys_macro.vh"
 module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr, 
-                  ip, op, start_ip, start_op, 
-                  _db_neg_product, _db_trig, _db_neg_sum);
+                  ip, op, start_ip, start_op);
   parameter N=3;  // number of inputs to FFT: 2^N
   parameter n=1;  // stage of the butterfly unit, start from 1.
   parameter delay = 1<<(N-n); // DON'T pass in this parameter!!
@@ -27,11 +26,6 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
   fpt buf_img[delay-1:0];
   
   integer stage_launch, output_countdown;
-  // DEBUG SIGNAL *********************
-  output fpt _db_neg_product[2:0];  // 0: a;  1: b; 2: a*b;
-  output fpt _db_trig[1:0];         // 0: sin;  1: cos
-  output fpt _db_neg_sum;
-  // **********************************
   // ----------------------------------
   // ----------------------------------
 `ifdef DTYPE_FIXED_POINT
@@ -98,8 +92,7 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
   function automatic cpx get_twiddle_val(
                   reg timemux_clk,
                   integer twiddle_idx,
-                  const ref reg [N-1:0] shuffle_idx[(1<<N)-1:0],
-                  fpt _db_trig[1:0]);
+                  const ref reg [N-1:0] shuffle_idx[(1<<N)-1:0]);
     // return twiddle value
     //  [1]:  real part
     //  [0]: imaginary part
@@ -120,9 +113,6 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
         twiddle_exp = shuffle_idx[twiddle_idx]>>(N-n+1);
         get_twiddle_val = expj(twiddle_exp);
       end
-      // DEBUG  ******************************
-      _db_trig = get_twiddle_val;
-      // *************************************
     end
   endfunction
   // ---------------------------------
@@ -150,9 +140,7 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
                   ref fpt buf_real[delay-1:0],
                   ref fpt buf_img[delay-1:0],
                   fpt ip[1:0],
-                  fpt twiddle_val[1:0],
-                  fpt _db_neg_product[2:0],
-                  fpt _db_neg_sum);
+                  fpt twiddle_val[1:0]);
     // ip <butterfly> buf[delay-1]
     // "+" value: push to op
     // "-" value: push to buf
@@ -172,12 +160,6 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
       buf_img[0] = bufN[0] - product[0];
       get_op_butterfly[1] = bufN[1] + product[1];
       get_op_butterfly[0] = bufN[0] + product[0];
-      // DEBUG  ****************************
-      _db_neg_product[0] = ip[1];
-      _db_neg_product[1] = twiddle_val[1];
-      _db_neg_product[2] = product[1];
-      _db_neg_sum = get_op_butterfly[1];
-      // ***********************************
     end
   endfunction
   // ---------------------------------
@@ -217,11 +199,11 @@ module bf_stage (reset, clk, shuffle_idx, cos_arr, sin_arr,
 
       if (stage_launch == 1) begin
         ctrl_timemux(timemux_clk_count, period_count, timemux_clk, twiddle_idx);
-        twiddle_val = get_twiddle_val(timemux_clk,twiddle_idx,shuffle_idx_reg, _db_trig);
+        twiddle_val = get_twiddle_val(timemux_clk,twiddle_idx,shuffle_idx_reg);
         if (timemux_clk == 1) begin
           op = get_op_shift_buf(buf_real,buf_img,ip_reg,twiddle_val);
         end else begin
-          op = get_op_butterfly(buf_real,buf_img,ip_reg,twiddle_val,_db_neg_product,_db_neg_sum);
+          op = get_op_butterfly(buf_real,buf_img,ip_reg,twiddle_val);
         end
       end else begin
         // idle
