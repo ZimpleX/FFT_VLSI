@@ -2,7 +2,7 @@
 
 #### Requirement:
 * `python3`
-    - `numpy`
+    - `numpy`, `argparse` package
 * Simple installation: [Anaconda](https://www.continuum.io/downloads)
 
 #### Usage:
