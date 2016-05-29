@@ -22,28 +22,37 @@ def main(itr, ip_data_file, N_ip, seed, verbose):
         line = f.read().split('\n')[0:-1]
         num = np.array([float(i.split(' ')[-1][0:-1]) for i in line])
     for r in range(itr):
-        ip = num[r*(2**N_ip):(r+1)*(2**N_ip)]
+        i_s = r*(2**N_ip)
+        i_e = i_s + (2**N_ip)
+        ip = num[i_s:i_e]
         if ip.shape[0] < 2**N_ip:
             exit()
+        print('-'*127)
+        print('----  INPUT ({:3d} to {:3d}): '.format(i_s,i_e)+'-'*101)
+        l = ip.shape[0]
+        fmt = ' '.join(['{:7.2f}']*l)
+        print(fmt.format(*ip))
+        print('-'*127)
         op_np_fft = np.around(np.fft.fft(ip), decimals=3)
         op_r2sdf_fft = np.around(algo.sim_flow(ip,verbose), decimals=3)
         if np.array_equal(op_r2sdf_fft, op_np_fft):
-            print("\t\t============")
-            print("\t\ttest PASSED!")
-            print("\t\t============")
+            print("============")
+            print("test PASSED!")
+            print("============")
         else:
-            print("\t\t************")
-            print("\t\ttest FAILED!")
-            print("\t\t************")
-        if verbose:
-            print('\t\t'+'-'*100)
-            print('\t\t----   correct      '+'-'*80)
-            l = op_np_fft.shape[0]
-            fmt = '  '.join(['{:.2f}']*l)
-            _ = np.array([i.real for i in op_np_fft])
-            print('\t\t'+fmt.format(*_))
-            _ = np.array([i.imag for i in op_np_fft])
-            print('\t\t'+fmt.format(*_))
+            print("************")
+            print("test FAILED!")
+            print("************")
+        print('-'*127)
+        print('----  CORRECT FINAL OUTPUT ({:3d} to {:3d}): real(row0), imag(row1) '.format(i_s,i_e)+'-'*63)
+        l = op_np_fft.shape[0]
+        fmt = ' '.join(['{:7.2f}']*l)
+        _ = np.array([i.real for i in op_np_fft])
+        print(fmt.format(*_))
+        _ = np.array([i.imag for i in op_np_fft])
+        print(fmt.format(*_))
+        print('-'*127)
+        print('\n'*2)
 
 
 if __name__ == '__main__':
