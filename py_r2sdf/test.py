@@ -19,7 +19,8 @@ def main(itr, ip_data_file, N_ip, seed, verbose):
     else:
         f_name = ip_data_file
         f = open(f_name)
-        line = f.read().split('\n')[0:-1]
+        line = f.read().split('\n')
+        line = [x for x in line if x]
         num = np.array([float(i.split(' ')[-1][0:-1]) for i in line])
     for r in range(itr):
         ip = num[r*(2**N_ip):(r+1)*(2**N_ip)]
