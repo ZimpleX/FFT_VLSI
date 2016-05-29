@@ -11,7 +11,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main(itr, ip_data_file, N_ip, seed, verbose):
+def main(ip_data_file, N_ip, seed=None, verbose=False, itr=5):
     if ip_data_file is None:
         if seed >= 0:
             np.random.seed(seed)
@@ -57,4 +57,4 @@ def main(itr, ip_data_file, N_ip, seed, verbose):
 
 if __name__ == '__main__':
     args = parse_args()
-    main(5, args.ip_data_file, args.N_ip, args.seed, args.verbose)
+    main(args.ip_data_file, args.N_ip, seed=args.seed, verbose=args.verbose, itr=5)

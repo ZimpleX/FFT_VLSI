@@ -10,7 +10,7 @@
     - e.g., `python3 test.py -f ../v_r2sdf/ip_arr_int.v -N 4 -v`
 * Interactive shell: 
     - `import test`
-    - `test.main(5, '../v_r2sdf/ip_arr_int.v', 4, verbose=True)`
+    - `test.main('../v_r2sdf/ip_arr_int.v', 4, verbose=True)`
 
 #### Sample output:
 
